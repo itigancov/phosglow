@@ -2,12 +2,13 @@
 
 A green phosphor CRT theme for [Ghostty](https://ghostty.org). Near-black
 background, green text, and an optional shader that adds the monitor look:
-a soft glow, scanlines, dark corners and a faint flicker.
+a soft glow, scanlines, dark corners with a lit centre, an amber glow for
+warnings and a softly pulsing cursor.
 
 | File | What it is |
 | --- | --- |
 | `themes/phosphor` | The colours: background, foreground, cursor, selection and the 16-colour palette |
-| `shaders/phosphor.glsl` | The CRT effects: glow, scanlines, vignette, flicker |
+| `shaders/phosphor.glsl` | The CRT effects: glow, scanlines, vignette, centre lift, amber glow, cursor halo |
 | `claude-code/phosphor.json` | A matching [Claude Code](https://claude.com/claude-code) theme (optional) |
 | `herdr/phosphor.toml` | Matching colours for [herdr](https://herdr.dev) (optional, added by hand) |
 | `install.sh` | Copies the files into place and points your Ghostty config at them |
@@ -59,7 +60,13 @@ The `install.sh` script does not do this for you.
   Ghostty logs shader errors and doesn't report them as config errors.
 - **To tune the look,** edit the constants at the top of
   `shaders/phosphor.glsl`: `BLOOM_STRENGTH`, `SCAN_DEPTH`, `VIGNETTE`,
-  `FLICKER`. Set `FLICKER` to `0.0` if it bothers your eyes.
+  `CENTER_LIFT`, `HOT_BOOST`, `CURSOR_PULSE`. `FLICKER` is off by default.
+  Set `CURSOR_PULSE` to `0.0` for a steady cursor halo.
+- **The cursor halo needs Ghostty 1.2 or newer.** It uses the cursor
+  uniforms (shader inputs) that Ghostty provides.
+- **Extra glow is for green only.** `HOT_BOOST` lights the brightest green
+  pixels, such as the Claude Code mascot. White and grey text, for example
+  in Neovim, gets the normal glow.
 - **Retina screens.** `SCAN_PERIOD` is in physical pixels. Raise it if the
   scanlines look too fine.
 
