@@ -9,6 +9,7 @@ a soft glow, scanlines, dark corners and a faint flicker.
 | `themes/phosphor` | The colours: background, foreground, cursor, selection and the 16-colour palette |
 | `shaders/phosphor.glsl` | The CRT effects: glow, scanlines, vignette, flicker |
 | `claude-code/phosphor.json` | A matching [Claude Code](https://claude.com/claude-code) theme (optional) |
+| `herdr/phosphor.toml` | Matching colours for [herdr](https://herdr.dev) (optional, added by hand) |
 | `install.sh` | Copies the files into place and points your Ghostty config at them |
 
 ## Install
@@ -39,6 +40,13 @@ its config block only once.
    custom-shader = shaders/phosphor.glsl
    ```
 
+## Optional: herdr
+
+herdr draws its own colours, so it ignores the Ghostty theme. To match it, paste
+`herdr/phosphor.toml` under the `[theme]` section of
+`~/.config/herdr/config.toml`. Then run `herdr server reload-config`.
+The `install.sh` script does not do this for you.
+
 ## Notes
 
 - **Green only, except red and amber.** Errors and warnings keep a warm
@@ -59,4 +67,5 @@ its config block only once.
 
 Delete the `# --- phosphor ---` block from your Ghostty config, then remove
 `~/.config/ghostty/themes/phosphor`, `~/.config/ghostty/shaders/phosphor.glsl`
-and, if you installed it, `~/.claude/themes/phosphor.json`.
+and, if you installed it, `~/.claude/themes/phosphor.json`. For herdr, delete
+the `[theme.custom]` section.

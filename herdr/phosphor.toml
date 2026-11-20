@@ -1,0 +1,23 @@
+# Phosphor for herdr. Paste this under the [theme] section of
+# ~/.config/herdr/config.toml, then run `herdr server reload-config`.
+# Custom colours sit on top of the built-in theme named in [theme].
+[theme.custom]
+panel_bg      = "reset"      # keeps the Ghostty background and shader
+sidebar_bg    = "#08110A"
+active_row_bg = "#0F2A16"
+selection_bg  = "#14401C"
+surface0      = "#0A140A"
+surface1      = "#10241A"
+surface_dim   = "#050A05"
+overlay0      = "#2F5A33"
+overlay1      = "#2F7A3A"
+text          = "#29E050"
+subtext0      = "#1FA83A"
+accent        = "#33FF66"
+green         = "#33FF66"
+blue          = "#3FA37A"
+teal          = "#3FD6A0"
+mauve         = "#5FB88A"
+yellow        = "#D9A32B"
+peach         = "#F2C14E"
+red           = "#E8512F"
