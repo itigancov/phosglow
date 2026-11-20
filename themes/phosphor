@@ -1,0 +1,27 @@
+# Phosphor — a green CRT monitor. Near-black background, one green ink.
+# Every colour is a shade of green, except red and amber, which stay warm
+# so that errors and warnings are still easy to see.
+background = 050A05
+foreground = 29E050
+cursor-color = 33FF66
+cursor-text = 050A05
+selection-background = 14401C
+selection-foreground = D8FFD8
+
+# 0–7 normal, 8–15 bright.
+palette = 0=#0A140A
+palette = 1=#E8512F
+palette = 2=#1FA83A
+palette = 3=#D9A32B
+palette = 4=#1B7A52
+palette = 5=#5FB88A
+palette = 6=#3FD6A0
+palette = 7=#9FE8A8
+palette = 8=#2F5A33
+palette = 9=#F77A5A
+palette = 10=#33FF66
+palette = 11=#F2C14E
+palette = 12=#3FA37A
+palette = 13=#8FE0B0
+palette = 14=#7CFFC8
+palette = 15=#D8FFD8
