@@ -18,9 +18,10 @@ from pathlib import Path
 # Published metadata. The identity is the GitHub handle only: no real name, no
 # email. Names must not start with `claude-` or `anthropic-`.
 NAME = "phosglow"
+TITLE = "Phosglow"
 HANDLE = "itigancov"
 HOMEPAGE = f"https://github.com/{HANDLE}/{NAME}"
-REPOSITORY = HOMEPAGE
+REPOSITORY = HOMEPAGE  # the same URL today; kept separate for the manifests
 LICENSE = "MIT"
 DESCRIPTION = ("Green phosphor CRT colour theme for terminals and AI coding "
                "tools, with an optional CRT shader for Ghostty.")
@@ -180,7 +181,7 @@ def contrast(a, b):
     return (hi + 0.05) / (lo + 0.05)
 
 
-TILE_W, TILE_H, GAP, MARGIN, HEADER = 168, 88, 12, 16, 40
+TILE_W, TILE_H, GAP, MARGIN, HEADER, COLS = 168, 88, 12, 16, 40, 4
 
 
 def palette_svg(palette):
@@ -195,23 +196,24 @@ def palette_svg(palette):
     tiles += [("bg", "bg", bg, fg, None),
               ("fg", "fg", fg, fg, bg),
               ("cursor", "cursor", palette["cursor"], palette["cursor"], bg),
-              ("selection", "selection text", palette["selection_bg"],
+              ("selection", f"text {palette['selection_fg']}", palette["selection_bg"],
                palette["selection_fg"], palette["selection_bg"])]
-    width = 2 * MARGIN + 4 * TILE_W + 3 * GAP
-    height = MARGIN + HEADER + 5 * TILE_H + 4 * GAP + MARGIN
+    rows = -(-len(tiles) // COLS)
+    width = 2 * MARGIN + COLS * TILE_W + (COLS - 1) * GAP
+    height = 2 * MARGIN + HEADER + rows * TILE_H + (rows - 1) * GAP
     out = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" font-family="ui-monospace, Menlo, monospace">',
-        "<title>Phosglow palette with WCAG contrast ratios against the background</title>",
+        f"<title>{TITLE} palette with WCAG contrast ratios against the background</title>",
         f'<rect width="{width}" height="{height}" fill="{bg}"/>',
         f'<text x="{MARGIN}" y="{MARGIN + 20}" font-size="16" font-weight="bold" '
-        f'fill="{fg}">Phosglow</text>',
+        f'fill="{fg}">{TITLE}</text>',
         f'<text x="{MARGIN + 100}" y="{MARGIN + 20}" font-size="12" fill="{fg}">'
         "contrast ratio (WCAG 2) against the background</text>",
     ]
     for n, (tid, name, swatch, sample, ref) in enumerate(tiles):
-        x = MARGIN + (n % 4) * (TILE_W + GAP)
-        y = MARGIN + HEADER + (n // 4) * (TILE_H + GAP)
+        x = MARGIN + (n % COLS) * (TILE_W + GAP)
+        y = MARGIN + HEADER + (n // COLS) * (TILE_H + GAP)
         field = palette["selection_bg"] if tid == "selection" else bg
         ratio = ""
         if ref is not None:

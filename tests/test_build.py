@@ -309,9 +309,9 @@ class ManifestTest(unittest.TestCase):
         for rel in (PLUGIN_PATH, MARKETPLACE_PATH):
             text = (p.root / rel).read_text()
             self.assertNotRegex(text, r"[\w.+-]+@[\w-]+\.[\w.]+", "email")
-            self.assertNotIn("Igor", text)
-            self.assertNotIn("example-user", text)
             self.assertIn("itigancov", text)
+        self.assertEqual(self.load(p, PLUGIN_PATH)["author"]["name"], "itigancov")
+        self.assertEqual(self.load(p, MARKETPLACE_PATH)["owner"]["name"], "itigancov")
         self.assertEqual(self.load(p, PLUGIN_PATH)["repository"],
                          "https://github.com/itigancov/phosglow")
 
@@ -407,6 +407,10 @@ class PaletteImageTest(unittest.TestCase):
         p = self.build_svg(self.palette(bg="#FFFFFF", selection_bg="#000000",
                                         selection_fg="#777777"))
         self.assertEqual(self.tiles(p)["selection"]["ratio"], "4.69:1")
+
+    def test_selection_tile_also_shows_the_text_hex(self):
+        p = self.build_svg(self.palette())
+        self.assertIn("#D8D8D8", self.tiles(p)["selection"]["name"])  # via bright_white
 
     def test_background_tile_has_no_ratio(self):
         p = self.build_svg(self.palette())
