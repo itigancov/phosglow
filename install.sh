@@ -94,7 +94,7 @@ full_help() {
   local i line spec desc
   for ((i = 0; i < ${#port_names[@]}; i++)); do
     echo
-    echo "$(port_describe "${port_names[i]}")"
+    port_describe "${port_names[i]}"
     while IFS= read -r line; do
       [ -n "$line" ] || continue
       spec=${line%%$'\t'*}
