@@ -3,15 +3,29 @@
 
     python3 tools/build.py [ROOT]
 
-ROOT (default: the repo root) holds `palette.toml` and `templates/<port>/`.
-Output goes to `ROOT/ports/<port>/`. Standard library only (Python 3.11+, for
-tomllib).
+ROOT (default: the repo root) holds `palette.toml`, `VERSION` and
+`templates/<port>/`. Output goes to `ROOT/ports/<port>/`, plus the Claude Code
+plugin and marketplace manifests and `ROOT/assets/palette.svg`. Standard
+library only (Python 3.11+, for tomllib).
 """
+import json
 import plistlib
 import re
 import sys
 import tomllib
 from pathlib import Path
+
+# Published metadata. The identity is the GitHub handle only: no real name, no
+# email. Names must not start with `claude-` or `anthropic-`.
+NAME = "phosglow"
+HANDLE = "itigancov"
+HOMEPAGE = f"https://github.com/{HANDLE}/{NAME}"
+REPOSITORY = HOMEPAGE
+LICENSE = "MIT"
+DESCRIPTION = ("Green phosphor CRT colour theme for terminals and AI coding "
+               "tools, with an optional CRT shader for Ghostty.")
+KEYWORDS = ["theme", "phosphor", "crt", "green", "terminal", "retro", "dark"]
+PLUGIN_DIR = "claude-code"  # ports/<this> is the plugin directory
 
 PLACEHOLDER = re.compile(r"\{\{(.*?)\}\}")
 
@@ -96,6 +110,129 @@ def itermcolors(palette):
     return plistlib.dumps(plist, sort_keys=True)
 
 
+VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
+
+
+def read_version(root):
+    try:
+        version = (root / "VERSION").read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeDecodeError) as e:
+        raise BuildError(f"cannot read VERSION: {e}") from e
+    if not VERSION_RE.fullmatch(version):
+        raise BuildError(f"VERSION: {version!r} is not X.Y.Z")
+    return version
+
+
+def manifests(root):
+    """The plugin manifest and the marketplace listing, both from VERSION."""
+    version = read_version(root)
+    owner = {"name": HANDLE, "url": f"https://github.com/{HANDLE}"}
+    plugin = {
+        "name": NAME,
+        "version": version,
+        "description": DESCRIPTION,
+        "author": owner,
+        "homepage": HOMEPAGE,
+        "repository": REPOSITORY,
+        "license": LICENSE,
+        "keywords": KEYWORDS,
+        "experimental": {"themes": "./themes/"},
+    }
+    marketplace = {
+        "name": NAME,
+        "description": DESCRIPTION,
+        "owner": owner,
+        "plugins": [{
+            "name": NAME,
+            "source": f"./ports/{PLUGIN_DIR}",
+            "version": version,
+            "description": DESCRIPTION,
+        }],
+    }
+
+    def dump(data):
+        return (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+
+    return {
+        root / "ports" / PLUGIN_DIR / ".claude-plugin" / "plugin.json": dump(plugin),
+        root / ".claude-plugin" / "marketplace.json": dump(marketplace),
+    }
+
+
+ANSI_ROLES = [
+    "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
+    "bright_black", "bright_red", "bright_green", "bright_yellow",
+    "bright_blue", "bright_magenta", "bright_cyan", "bright_white"]
+IMAGE_ROLES = ANSI_ROLES + ["bg", "fg", "cursor", "selection_bg", "selection_fg"]
+
+
+def luminance(hex_):
+    """WCAG 2 relative luminance of #RRGGBB."""
+    def linear(i):
+        c = int(hex_[i:i + 2], 16) / 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    return 0.2126 * linear(1) + 0.7152 * linear(3) + 0.0722 * linear(5)
+
+
+def contrast(a, b):
+    """WCAG 2 contrast ratio of two #RRGGBB colours (1 to 21)."""
+    hi, lo = sorted((luminance(a), luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+TILE_W, TILE_H, GAP, MARGIN, HEADER = 168, 88, 12, 16, 40
+
+
+def palette_svg(palette):
+    """An image of the Palette: each colour on the background with its exact
+    contrast ratio against it (selection text against the selection background)."""
+    missing = [r for r in IMAGE_ROLES if r not in palette]
+    if missing:
+        raise BuildError(f"image: palette lacks roles {', '.join(missing)}")
+    bg, fg = palette["bg"], palette["fg"]
+    # (id, name, swatch colour, sample text colour, reference for the ratio)
+    tiles = [(r, r, palette[r], palette[r], bg) for r in ANSI_ROLES]
+    tiles += [("bg", "bg", bg, fg, None),
+              ("fg", "fg", fg, fg, bg),
+              ("cursor", "cursor", palette["cursor"], palette["cursor"], bg),
+              ("selection", "selection text", palette["selection_bg"],
+               palette["selection_fg"], palette["selection_bg"])]
+    width = 2 * MARGIN + 4 * TILE_W + 3 * GAP
+    height = MARGIN + HEADER + 5 * TILE_H + 4 * GAP + MARGIN
+    out = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}" font-family="ui-monospace, Menlo, monospace">',
+        "<title>Phosglow palette with WCAG contrast ratios against the background</title>",
+        f'<rect width="{width}" height="{height}" fill="{bg}"/>',
+        f'<text x="{MARGIN}" y="{MARGIN + 20}" font-size="16" font-weight="bold" '
+        f'fill="{fg}">Phosglow</text>',
+        f'<text x="{MARGIN + 100}" y="{MARGIN + 20}" font-size="12" fill="{fg}">'
+        "contrast ratio (WCAG 2) against the background</text>",
+    ]
+    for n, (tid, name, swatch, sample, ref) in enumerate(tiles):
+        x = MARGIN + (n % 4) * (TILE_W + GAP)
+        y = MARGIN + HEADER + (n // 4) * (TILE_H + GAP)
+        field = palette["selection_bg"] if tid == "selection" else bg
+        ratio = ""
+        if ref is not None:
+            ratio = (f'<text class="ratio" x="{TILE_W - 8}" y="{TILE_H - 8}" '
+                     f'font-size="12" text-anchor="end" fill="{fg}">'
+                     f"{contrast(sample, ref):.2f}:1</text>")
+        out.append(
+            f'<g id="tile-{tid}" transform="translate({x} {y})">'
+            f'<rect width="{TILE_W}" height="{TILE_H}" rx="6" fill="{bg}" '
+            f'stroke="{fg}" stroke-opacity="0.3"/>'
+            f'<rect x="1" y="8" width="{TILE_W - 2}" height="32" fill="{field}"/>'
+            f'<rect x="8" y="12" width="24" height="24" rx="3" fill="{swatch}" '
+            f'stroke="{fg}" stroke-opacity="0.3"/>'
+            f'<text x="44" y="33" font-size="18" font-weight="bold" fill="{sample}">Aa</text>'
+            f'<text class="name" x="8" y="58" font-size="11" fill="{fg}">{name}</text>'
+            f'<text class="hex" x="8" y="{TILE_H - 8}" font-size="12" fill="{fg}">{swatch}</text>'
+            f"{ratio}</g>")
+    out.append("</svg>")
+    return ("\n".join(out) + "\n").encode("utf-8")
+
+
 def build(root):
     """Return {output path: bytes} for every Port under root."""
     root = Path(root)
@@ -114,6 +251,10 @@ def build(root):
         outputs[root / "ports" / rel.with_suffix("")] = text.encode("utf-8")
     if (root / "templates" / "iterm2").is_dir():
         outputs[root / "ports" / "iterm2" / "Phosglow.itermcolors"] = itermcolors(palette)
+    if (root / "templates" / PLUGIN_DIR).is_dir():
+        outputs.update(manifests(root))
+    if any(r in palette for r in ANSI_ROLES):
+        outputs[root / "assets" / "palette.svg"] = palette_svg(palette)
     return outputs
 
 

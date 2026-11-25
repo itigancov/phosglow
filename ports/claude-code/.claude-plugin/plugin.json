@@ -1,0 +1,24 @@
+{
+  "name": "phosglow",
+  "version": "1.0.0",
+  "description": "Green phosphor CRT colour theme for terminals and AI coding tools, with an optional CRT shader for Ghostty.",
+  "author": {
+    "name": "itigancov",
+    "url": "https://github.com/itigancov"
+  },
+  "homepage": "https://github.com/itigancov/phosglow",
+  "repository": "https://github.com/itigancov/phosglow",
+  "license": "MIT",
+  "keywords": [
+    "theme",
+    "phosphor",
+    "crt",
+    "green",
+    "terminal",
+    "retro",
+    "dark"
+  ],
+  "experimental": {
+    "themes": "./themes/"
+  }
+}

@@ -32,7 +32,7 @@ class GoldenTest(unittest.TestCase):
     def setUpClass(cls):
         cls._tmp = tempfile.TemporaryDirectory()
         cls.root = Path(cls._tmp.name)
-        for name in ("palette.toml", "templates", "ports/ghostty/phosglow.glsl"):
+        for name in ("palette.toml", "VERSION", "templates", "ports/ghostty/phosglow.glsl"):
             src = REPO / name
             dst = cls.root / name
             dst.parent.mkdir(parents=True, exist_ok=True)

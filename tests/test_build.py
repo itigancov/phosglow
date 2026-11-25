@@ -1,9 +1,11 @@
 """Black-box tests for tools/build.py: run the CLI on a fixture project."""
+import json
 import plistlib
 import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 BUILD = Path(__file__).resolve().parent.parent / "tools" / "build.py"
@@ -241,6 +243,200 @@ class ItermColorsTest(unittest.TestCase):
         p = Project(self, palette_toml(bg="#050A05"), {"a/t.tmpl": "x\n"})
         self.assertEqual(p.build().returncode, 0)
         self.assertFalse((p.root / "ports/iterm2").exists())
+
+
+PLUGIN = ".claude-plugin/plugin.json"
+PLUGIN_PATH = "ports/claude-code/" + PLUGIN
+MARKETPLACE_PATH = ".claude-plugin/marketplace.json"
+
+
+class ManifestTest(unittest.TestCase):
+    def project(self, version="1.0.0", with_port=True):
+        templates = {"claude-code/themes/phosglow.json.tmpl": "{{bg}}\n"} if with_port else {"a/t.tmpl": "x\n"}
+        p = Project(self, palette_toml(bg="#050A05"), templates)
+        if version is not None:
+            (p.root / "VERSION").write_text(version + "\n")
+        return p
+
+    def load(self, p, rel):
+        return json.loads((p.root / rel).read_text())
+
+    def build_ok(self, p):
+        r = p.build()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_both_manifests_carry_the_version_exactly(self):
+        p = self.project("2.13.7")
+        self.build_ok(p)
+        self.assertEqual(self.load(p, PLUGIN_PATH)["version"], "2.13.7")
+        entry, = self.load(p, MARKETPLACE_PATH)["plugins"]
+        self.assertEqual(entry["version"], "2.13.7")
+
+    def test_changing_version_changes_only_the_two_manifests(self):
+        p = self.project("1.0.0")
+        self.build_ok(p)
+        before = p.snapshot()
+        (p.root / "VERSION").write_text("1.0.1\n")
+        self.build_ok(p)
+        after = p.snapshot()
+        changed = {k for k in before.keys() | after.keys() if before.get(k) != after.get(k)}
+        self.assertEqual(changed, {"VERSION", PLUGIN_PATH, MARKETPLACE_PATH})
+
+    def test_marketplace_points_at_the_plugin_directory(self):
+        p = self.project()
+        self.build_ok(p)
+        m = self.load(p, MARKETPLACE_PATH)
+        entry, = m["plugins"]
+        self.assertEqual(entry["source"], "./ports/claude-code")
+        self.assertEqual(entry["name"], m["name"])
+        self.assertTrue((p.root / "ports/claude-code/themes/phosglow.json").is_file())
+
+    def test_plugin_declares_the_themes_directory(self):
+        p = self.project()
+        self.build_ok(p)
+        self.assertEqual(self.load(p, PLUGIN_PATH)["experimental"], {"themes": "./themes/"})
+
+    def test_names_avoid_reserved_prefixes(self):
+        p = self.project()
+        self.build_ok(p)
+        for name in (self.load(p, PLUGIN_PATH)["name"], self.load(p, MARKETPLACE_PATH)["name"]):
+            self.assertEqual(name, "phosglow")
+            self.assertFalse(name.startswith(("claude-", "anthropic-")))
+
+    def test_identity_is_the_github_handle_only(self):
+        p = self.project()
+        self.build_ok(p)
+        for rel in (PLUGIN_PATH, MARKETPLACE_PATH):
+            text = (p.root / rel).read_text()
+            self.assertNotRegex(text, r"[\w.+-]+@[\w-]+\.[\w.]+", "email")
+            self.assertNotIn("Igor", text)
+            self.assertNotIn("example-user", text)
+            self.assertIn("itigancov", text)
+        self.assertEqual(self.load(p, PLUGIN_PATH)["repository"],
+                         "https://github.com/itigancov/phosglow")
+
+    def test_manifests_have_descriptive_metadata(self):
+        p = self.project()
+        self.build_ok(p)
+        plugin = self.load(p, PLUGIN_PATH)
+        for key in ("description", "homepage", "repository", "license", "keywords"):
+            self.assertTrue(plugin[key], key)
+        self.assertEqual(plugin["license"], "MIT")
+        m = self.load(p, MARKETPLACE_PATH)
+        self.assertTrue(m["description"])
+        self.assertTrue(m["owner"]["name"])
+
+    def test_invalid_version_fails_cleanly(self):
+        for bad in ("1.0", "v1.0.0", "1.0.0-rc1", "", "one"):
+            with self.subTest(bad=bad):
+                p = self.project(bad)
+                r = p.build()
+                self.assertNotEqual(r.returncode, 0)
+                self.assertIn("VERSION", r.stderr)
+                self.assertNotIn("Traceback", r.stderr)
+                self.assertFalse((p.root / "ports").exists())
+
+    def test_missing_version_fails_when_the_plugin_port_exists(self):
+        p = self.project(None)
+        r = p.build()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("VERSION", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+
+    def test_no_claude_code_port_means_no_manifests(self):
+        p = self.project(None, with_port=False)
+        self.build_ok(p)
+        self.assertFalse((p.root / ".claude-plugin").exists())
+        self.assertFalse((p.root / "ports/claude-code").exists())
+
+    def test_second_run_changes_nothing(self):
+        p = self.project()
+        self.build_ok(p)
+        first = p.snapshot()
+        self.build_ok(p)
+        self.assertEqual(p.snapshot(), first)
+
+
+SVG_PATH = "assets/palette.svg"
+SVG = "{http://www.w3.org/2000/svg}"
+
+
+class PaletteImageTest(unittest.TestCase):
+    def build_svg(self, palette):
+        p = Project(self, palette, {"a/t.tmpl": "x\n"})
+        r = p.build()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return p
+
+    def tiles(self, p):
+        root = ET.parse(p.root / SVG_PATH).getroot()
+        out = {}
+        for g in root.iter(SVG + "g"):
+            if g.get("id", "").startswith("tile-"):
+                texts = {t.get("class"): t.text for t in g.iter(SVG + "text")}
+                out[g.get("id")[5:]] = texts
+        return out
+
+    def palette(self, **overrides):
+        colours = {name: f"#{i:02X}{i:02X}{i:02X}" for i, name in enumerate(ANSI)}
+        colours.update(bg="#050A05", fg="#29E050", cursor="bright_green",
+                       cursor_text="bg", selection_bg="#14401C", selection_fg="bright_white")
+        colours.update(overrides)
+        return palette_toml(**colours)
+
+    def test_black_on_white_is_exactly_21(self):
+        p = self.build_svg(self.palette(bg="#FFFFFF", black="#000000"))
+        self.assertEqual(self.tiles(p)["black"]["ratio"], "21.00:1")
+
+    def test_known_ratio_against_background(self):
+        # #777777 on white is the textbook 4.48:1.
+        p = self.build_svg(self.palette(bg="#FFFFFF", fg="#777777"))
+        self.assertEqual(self.tiles(p)["fg"]["ratio"], "4.48:1")
+
+    def test_one_tile_per_colour_with_its_hex(self):
+        p = self.build_svg(self.palette())
+        tiles = self.tiles(p)
+        self.assertEqual(set(tiles), set(ANSI) | {"bg", "fg", "cursor", "selection"})
+        self.assertEqual(tiles["red"]["hex"], "#010101")
+        self.assertEqual(tiles["bg"]["hex"], "#050A05")
+        self.assertEqual(tiles["cursor"]["hex"], "#0A0A0A")  # via reference bright_green
+        self.assertEqual(tiles["selection"]["hex"], "#14401C")
+
+    def test_selection_text_is_measured_against_the_selection_background(self):
+        # On the selection background (black) #777777 is 4.69:1; on bg (white) 4.48:1.
+        p = self.build_svg(self.palette(bg="#FFFFFF", selection_bg="#000000",
+                                        selection_fg="#777777"))
+        self.assertEqual(self.tiles(p)["selection"]["ratio"], "4.69:1")
+
+    def test_background_tile_has_no_ratio(self):
+        p = self.build_svg(self.palette())
+        self.assertNotIn("ratio", self.tiles(p)["bg"])
+
+    def test_output_is_valid_svg_with_an_accessible_title(self):
+        p = self.build_svg(self.palette())
+        root = ET.parse(p.root / SVG_PATH).getroot()
+        self.assertEqual(root.tag, SVG + "svg")
+        self.assertTrue(root.find(SVG + "title").text)
+
+    def test_second_run_changes_nothing(self):
+        p = self.build_svg(self.palette())
+        first = p.snapshot()
+        self.assertEqual(p.build().returncode, 0)
+        self.assertEqual(p.snapshot(), first)
+
+    def test_palette_without_ansi_roles_makes_no_image(self):
+        p = Project(self, palette_toml(bg="#050A05"), {"a/t.tmpl": "x\n"})
+        self.assertEqual(p.build().returncode, 0)
+        self.assertFalse((p.root / "assets").exists())
+
+    def test_partial_palette_fails_naming_the_missing_role(self):
+        pal = palette_toml(bg="#050A05", fg="#29E050", black="#000000")
+        p = Project(self, pal, {"a/t.tmpl": "x\n"})
+        r = p.build()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("red", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertFalse((p.root / "ports").exists())
 
 
 if __name__ == "__main__":

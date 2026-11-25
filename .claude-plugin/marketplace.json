@@ -1,0 +1,16 @@
+{
+  "name": "phosglow",
+  "description": "Green phosphor CRT colour theme for terminals and AI coding tools, with an optional CRT shader for Ghostty.",
+  "owner": {
+    "name": "itigancov",
+    "url": "https://github.com/itigancov"
+  },
+  "plugins": [
+    {
+      "name": "phosglow",
+      "source": "./ports/claude-code",
+      "version": "1.0.0",
+      "description": "Green phosphor CRT colour theme for terminals and AI coding tools, with an optional CRT shader for Ghostty."
+    }
+  ]
+}
