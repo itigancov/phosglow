@@ -1,4 +1,4 @@
-# Phosphor for Ghostty
+# Phosglow for Ghostty
 
 A green phosphor CRT theme for [Ghostty](https://ghostty.org). Near-black
 background, green text, and an optional shader that adds the monitor look:
@@ -7,10 +7,10 @@ warnings and a softly pulsing cursor.
 
 | File | What it is |
 | --- | --- |
-| `themes/phosphor` | The colours: background, foreground, cursor, selection and the 16-colour palette |
-| `shaders/phosphor.glsl` | The CRT effects: glow, scanlines, vignette, centre lift, amber glow, cursor halo |
-| `claude-code/phosphor.json` | A matching [Claude Code](https://claude.com/claude-code) theme (optional) |
-| `herdr/phosphor.toml` | Matching colours for [herdr](https://herdr.dev) (optional, added by hand) |
+| `ports/ghostty/Phosglow` | The colours: background, foreground, cursor, selection and the 16-colour palette |
+| `ports/ghostty/phosglow.glsl` | The CRT effects: glow, scanlines, vignette, centre lift, amber glow, cursor halo |
+| `ports/claude-code/themes/phosglow.json` | A matching [Claude Code](https://claude.com/claude-code) theme (optional) |
+| `ports/herdr/phosglow.toml` | Matching colours for [herdr](https://herdr.dev) (optional, added by hand) |
 | `install.sh` | Copies the files into place and points your Ghostty config at them |
 
 ## Install
@@ -25,26 +25,26 @@ Options:
 
 - `./install.sh --no-crt` installs the colours without the shader.
 - `./install.sh --claude-code` also installs the Claude Code theme. To turn it
-  on, set `"theme": "custom:phosphor"` in `~/.claude/settings.json`.
+  on, set `"theme": "custom:phosglow"` in `~/.claude/settings.json`.
 
 You can run the script again safely. It overwrites the theme files and adds
 its config block only once.
 
 ### By hand
 
-1. Copy `themes/phosphor` to `~/.config/ghostty/themes/phosphor`.
-2. Copy `shaders/phosphor.glsl` to `~/.config/ghostty/shaders/phosphor.glsl`.
+1. Copy `ports/ghostty/Phosglow` to `~/.config/ghostty/themes/Phosglow`.
+2. Copy `ports/ghostty/phosglow.glsl` to `~/.config/ghostty/shaders/phosglow.glsl`.
 3. Add these lines to `~/.config/ghostty/config.ghostty`:
 
    ```
-   theme = phosphor
-   custom-shader = shaders/phosphor.glsl
+   theme = Phosglow
+   custom-shader = shaders/phosglow.glsl
    ```
 
 ## Optional: herdr
 
 herdr draws its own colours, so it ignores the Ghostty theme. To match it, paste
-`herdr/phosphor.toml` under the `[theme]` section of
+`ports/herdr/phosglow.toml` under the `[theme]` section of
 `~/.config/herdr/config.toml`. Then run `herdr server reload-config`.
 The `install.sh` script does not do this for you.
 
@@ -59,7 +59,7 @@ The `install.sh` script does not do this for you.
 - **If the effects don't show,** the shader probably failed to compile.
   Ghostty logs shader errors and doesn't report them as config errors.
 - **To tune the look,** edit the constants at the top of
-  `shaders/phosphor.glsl`: `BLOOM_STRENGTH`, `SCAN_DEPTH`, `VIGNETTE`,
+  `ports/ghostty/phosglow.glsl`: `BLOOM_STRENGTH`, `SCAN_DEPTH`, `VIGNETTE`,
   `CENTER_LIFT`, `HOT_BOOST`, `CURSOR_PULSE`. `FLICKER` is off by default.
   Set `CURSOR_PULSE` to `0.0` for a steady cursor halo.
 - **The cursor halo needs Ghostty 1.2 or newer.** It uses the cursor
@@ -72,7 +72,7 @@ The `install.sh` script does not do this for you.
 
 ## Uninstall
 
-Delete the `# --- phosphor ---` block from your Ghostty config, then remove
-`~/.config/ghostty/themes/phosphor`, `~/.config/ghostty/shaders/phosphor.glsl`
-and, if you installed it, `~/.claude/themes/phosphor.json`. For herdr, delete
+Delete the `# --- phosglow ---` block from your Ghostty config, then remove
+`~/.config/ghostty/themes/Phosglow`, `~/.config/ghostty/shaders/phosglow.glsl`
+and, if you installed it, `~/.claude/themes/phosglow.json`. For herdr, delete
 the `[theme.custom]` section.

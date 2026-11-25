@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs Phosphor into Ghostty, and optionally into Claude Code.
+# Installs Phosglow into Ghostty, and optionally into Claude Code.
 #
 #   ./install.sh                 theme + CRT shader
 #   ./install.sh --no-crt        theme only
@@ -22,8 +22,8 @@ done
 
 ghostty_dir="${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
 mkdir -p "$ghostty_dir/themes" "$ghostty_dir/shaders"
-cp "$here/themes/phosphor" "$ghostty_dir/themes/phosphor"
-cp "$here/shaders/phosphor.glsl" "$ghostty_dir/shaders/phosphor.glsl"
+cp "$here/ports/ghostty/Phosglow" "$ghostty_dir/themes/Phosglow"
+cp "$here/ports/ghostty/phosglow.glsl" "$ghostty_dir/shaders/phosglow.glsl"
 echo "Copied the theme and shader to $ghostty_dir"
 
 # Ghostty reads config.ghostty; older installs use a file named config.
@@ -36,26 +36,26 @@ else
   touch "$config"
 fi
 
-marker="# --- phosphor ---"
+marker="# --- phosglow ---"
 if grep -qF "$marker" "$config"; then
-  echo "$config already has the phosphor block; left it alone."
+  echo "$config already has the phosglow block; left it alone."
 else
   {
     printf '\n%s\n' "$marker"
     echo "# Later lines win, so this overrides any theme set above."
-    echo "theme = phosphor"
+    echo "theme = Phosglow"
     if [[ $crt -eq 1 ]]; then
-      echo "custom-shader = shaders/phosphor.glsl"
+      echo "custom-shader = shaders/phosglow.glsl"
     fi
   } >> "$config"
-  echo "Added the phosphor block to $config"
+  echo "Added the phosglow block to $config"
 fi
 
 if [[ $claude -eq 1 ]]; then
   mkdir -p "$HOME/.claude/themes"
-  cp "$here/claude-code/phosphor.json" "$HOME/.claude/themes/phosphor.json"
-  echo "Copied the Claude Code theme to ~/.claude/themes/phosphor.json"
-  echo "Turn it on with \"theme\": \"custom:phosphor\" in ~/.claude/settings.json."
+  cp "$here/ports/claude-code/themes/phosglow.json" "$HOME/.claude/themes/phosglow.json"
+  echo "Copied the Claude Code theme to ~/.claude/themes/phosglow.json"
+  echo "Turn it on with \"theme\": \"custom:phosglow\" in ~/.claude/settings.json."
 fi
 
 echo "Reload Ghostty's config (Cmd+Shift+, on macOS) or open a new window."

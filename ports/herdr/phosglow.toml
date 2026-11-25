@@ -1,4 +1,4 @@
-# Phosphor for herdr. Paste this under the [theme] section of
+# Phosglow for herdr. Paste this under the [theme] section of
 # ~/.config/herdr/config.toml, then run `herdr server reload-config`.
 # Custom colours sit on top of the built-in theme named in [theme].
 [theme.custom]

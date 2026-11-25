@@ -1,0 +1,47 @@
+# The Phosglow Palette: the only place a colour is defined.
+# Values are "#RRGGBB" (uppercase) or the name of another role.
+# Name roles by purpose, not by app. Adding a role never changes existing values.
+
+# ANSI 0-7 normal, 8-15 bright.
+black          = "#0A140A"
+red            = "#E8512F"
+green          = "#1FA83A"
+yellow         = "#D9A32B"
+blue           = "#1B7A52"
+magenta        = "#5FB88A"
+cyan           = "#3FD6A0"
+white          = "#9FE8A8"
+bright_black   = "#44805A"
+bright_red     = "#F77A5A"
+bright_green   = "#33FF66"
+bright_yellow  = "#F2C14E"
+bright_blue    = "#3FA37A"
+bright_magenta = "#8FE0B0"
+bright_cyan    = "#7CFFC8"
+bright_white   = "#D8FFD8"
+
+# Base.
+bg           = "#050A05"
+fg           = "#29E050"
+cursor       = "bright_green"
+cursor_text  = "bg"
+selection_bg = "#14401C"
+selection_fg = "bright_white"
+
+# Extra tones (Claude Code, herdr).
+shimmer             = "#8CFFAA"
+inactive            = "#55BC66"
+inactive_shimmer    = "#70D680"
+subtle              = "#2D6A38"
+sidebar             = "#08110A"
+surface_1           = "#10241A"
+row_active          = "#0F2A16"
+meter_empty         = "#14301A"
+diff_added_bg       = "#0F3A1A"
+diff_removed_bg     = "#3F1A12"
+diff_added_dim_bg   = "#0C2A14"
+diff_removed_dim_bg = "#2A1510"
+diff_added_word     = "#1F8A3A"
+diff_removed_word   = "#A8401F"
+message_bg          = "#0C1A10"
+memory_bg           = "#0A1F14"

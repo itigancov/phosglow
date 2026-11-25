@@ -1,4 +1,4 @@
-# Phosphor — a green CRT monitor. Near-black background, one green ink.
+# Phosglow — a green CRT monitor. Near-black background, one green ink.
 # Every colour is a shade of green, except red and amber, which stay warm
 # so that errors and warnings are still easy to see.
 background = 050A05

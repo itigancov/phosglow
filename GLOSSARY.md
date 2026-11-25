@@ -19,3 +19,7 @@ _Avoid_: target, flavour
 **Shader**:
 The optional CRT effect (glow, scanlines) layered over the screen. Ghostty only; not part of the Palette or of any Port's colours.
 _Avoid_: CRT theme
+
+**Role**:
+A named entry of the Palette, named by its purpose, not by the application that uses it (`diff_added_bg`, not `claude_diff`). A Role may reference another Role. Adding a Role never changes existing values.
+_Avoid_: token, variable, slot
