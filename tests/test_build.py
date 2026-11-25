@@ -410,7 +410,7 @@ class PaletteImageTest(unittest.TestCase):
 
     def test_selection_tile_also_shows_the_text_hex(self):
         p = self.build_svg(self.palette())
-        self.assertIn("#D8D8D8", self.tiles(p)["selection"]["name"])  # via bright_white
+        self.assertIn("#0F0F0F", self.tiles(p)["selection"]["name"])  # via bright_white
 
     def test_background_tile_has_no_ratio(self):
         p = self.build_svg(self.palette())
