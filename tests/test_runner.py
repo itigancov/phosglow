@@ -122,6 +122,19 @@ class Freshness(RunnerCase):
         self.assertFails("freshness", ".claude-plugin/marketplace.json",
                          "ports/claude-code/.claude-plugin/plugin.json")
 
+    def test_stale_herdr_manifest_names_the_file(self):
+        self.edit("ports/herdr/herdr-plugin.toml", 'name = "Phosglow"',
+                  'name = "Hand edit"')
+        self.assertFails("freshness", "ports/herdr/herdr-plugin.toml")
+
+    def test_stale_herdr_helper_copy_names_the_file(self):
+        self.edit("ports/herdr/lib.sh", "_dry()", "# hand edit\n_dry()")
+        self.assertFails("freshness", "ports/herdr/lib.sh")
+
+    def test_helper_change_without_regenerating_fails(self):
+        self.edit("tools/lib.sh", "_dry()", "# changed\n_dry()")
+        self.assertFails("freshness", "ports/herdr/lib.sh")
+
     def test_palette_change_without_regenerating_fails(self):
         self.edit("palette.toml", 'surface_1           = "#10241A"',
                   'surface_1           = "#112233"')

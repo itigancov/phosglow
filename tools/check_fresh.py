@@ -19,9 +19,9 @@ ROOT = Path(os.environ.get("PHOSGLOW_ROOT")
 sys.path.insert(0, str(ROOT / "tools"))  # the generator of the repo under test
 import build  # noqa: E402
 
-INPUTS = ("palette.toml", "VERSION", "templates")
+INPUTS = ("palette.toml", "VERSION", "templates", "tools/lib.sh")
 # Hand-written files that live beside rendered ones, by name.
-HAND_WRITTEN = {"install.sh", "phosglow.glsl"}
+HAND_WRITTEN = {"install.sh", "phosglow.glsl", "apply.sh", "remove.sh"}
 
 
 def rendered(root):
@@ -34,6 +34,7 @@ def main():
         scratch = Path(tmp)
         for name in INPUTS:
             src = ROOT / name
+            (scratch / name).parent.mkdir(parents=True, exist_ok=True)
             if src.is_dir():
                 shutil.copytree(src, scratch / name)
             elif src.exists():

@@ -67,6 +67,7 @@ def check_indexed_colours(path, line_re, index_of, indexes, what):
 
 def check_herdr(port):
     parse(port / "phosglow.toml", load_toml)
+    parse(port / "herdr-plugin.toml", load_toml)
 
 
 def check_claude_code(port):

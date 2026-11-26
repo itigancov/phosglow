@@ -16,6 +16,10 @@ _Avoid_: colour scheme, theme file
 Phosglow as it appears in one application (Ghostty, iTerm2, Claude Code, herdr). One Palette, many Ports.
 _Avoid_: target, flavour
 
+**Plugin**:
+A Port packaged for an application's own plugin system (Claude Code, herdr). Not every Port is a Plugin.
+_Avoid_: extension, package
+
 **Shader**:
 The optional CRT effect (glow, scanlines) layered over the screen. Ghostty only; not part of the Palette or of any Port's colours.
 _Avoid_: CRT theme

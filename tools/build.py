@@ -5,8 +5,9 @@
 
 ROOT (default: the repo root) holds `palette.toml`, `VERSION` and
 `templates/<port>/`. Output goes to `ROOT/ports/<port>/`, plus the Claude Code
-plugin and marketplace manifests and `ROOT/assets/palette.svg`. Standard
-library only (Python 3.11+, for tomllib).
+plugin and marketplace manifests, the herdr Plugin manifest and helper copy,
+and `ROOT/assets/palette.svg`. Standard library only (Python 3.11+, for
+tomllib).
 """
 import json
 import plistlib
@@ -27,6 +28,8 @@ DESCRIPTION = ("Green phosphor CRT colour theme for terminals and AI coding "
                "tools, with an optional CRT shader for Ghostty.")
 KEYWORDS = ["theme", "phosphor", "crt", "green", "terminal", "retro", "dark"]
 PLUGIN_DIR = "claude-code"  # ports/<this> is the plugin directory
+HERDR_DIR = "herdr"  # ports/<this> is the herdr Plugin folder
+HERDR_MIN_VERSION = "0.9.5"  # the herdr version the Plugin was tested with
 
 PLACEHOLDER = re.compile(r"\{\{(.*?)\}\}")
 
@@ -160,6 +163,38 @@ def manifests(root):
     }
 
 
+def herdr_plugin(root):
+    """The herdr Plugin manifest and its copy of the shared installer helpers.
+
+    The Plugin folder may be installed alone from GitHub, so it carries its
+    own copy of tools/lib.sh instead of reaching outside itself."""
+    version = read_version(root)
+    try:
+        helpers = (root / "tools" / "lib.sh").read_bytes()
+    except OSError as e:
+        raise BuildError(f"herdr: cannot read tools/lib.sh: {e}") from e
+    actions = [
+        ("apply", "Apply Phosglow", "./apply.sh"),
+        ("remove", "Remove Phosglow", "./remove.sh"),
+    ]
+    lines = [
+        f'id = "{HANDLE}.{NAME}"',
+        f'name = "{TITLE}"',
+        f'version = "{version}"',
+        f'min_herdr_version = "{HERDR_MIN_VERSION}"',
+        f"description = {json.dumps(DESCRIPTION)}",
+        'platforms = ["macos", "linux"]',
+    ]
+    for action_id, title, command in actions:
+        lines += ["", "[[actions]]", f'id = "{action_id}"', f'title = "{title}"',
+                  'contexts = ["global"]', f'command = ["{command}"]']
+    base = root / "ports" / HERDR_DIR
+    return {
+        base / "herdr-plugin.toml": ("\n".join(lines) + "\n").encode("utf-8"),
+        base / "lib.sh": helpers,
+    }
+
+
 ANSI_ROLES = [
     "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
     "bright_black", "bright_red", "bright_green", "bright_yellow",
@@ -255,6 +290,8 @@ def build(root):
         outputs[root / "ports" / "iterm2" / "Phosglow.itermcolors"] = itermcolors(palette)
     if (root / "templates" / PLUGIN_DIR).is_dir():
         outputs.update(manifests(root))
+    if (root / "templates" / HERDR_DIR).is_dir():
+        outputs.update(herdr_plugin(root))
     if any(r in palette for r in ANSI_ROLES):
         outputs[root / "assets" / "palette.svg"] = palette_svg(palette)
     return outputs

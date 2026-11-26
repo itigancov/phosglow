@@ -4,7 +4,7 @@ Status: accepted
 
 # Generate every Port from one Palette, and commit the output
 
-All Phosglow colours live in one `palette.toml` (a flat table of named colours, entries may reference each other). Each Port is a template under `templates/<port>/` with `{{name}}` placeholders instead of hex; a stdlib-only Python script, `tools/build.py`, renders them into `ports/<port>/`. `.itermcolors` (plist with float components) is built in code. The rendered files are committed, so users install without running anything. The Ghostty Shader is hand-written and sits in `ports/ghostty/` untouched by the generator. `ports/claude-code/` is a Claude Code plugin directory (`.claude-plugin/plugin.json`, `themes/phosglow.json`), so the marketplace file at the repo root can point at it.
+All Phosglow colours live in one `palette.toml` (a flat table of named colours, entries may reference each other). Each Port is a template under `templates/<port>/` with `{{name}}` placeholders instead of hex; a stdlib-only Python script, `tools/build.py`, renders them into `ports/<port>/`. `.itermcolors` (plist with float components) is built in code. The rendered files are committed, so users install without running anything. The Ghostty Shader is hand-written and sits in `ports/ghostty/` untouched by the generator. `ports/claude-code/` is a Claude Code plugin directory (`.claude-plugin/plugin.json`, `themes/phosglow.json`), so the marketplace file at the repo root can point at it. `ports/herdr/` is also a herdr Plugin folder: the build writes its `herdr-plugin.toml` and a copy of `tools/lib.sh` (so the folder works installed alone), beside the hand-written `apply.sh` and `remove.sh` actions.
 
 ## Considered Options
 
@@ -14,6 +14,6 @@ All Phosglow colours live in one `palette.toml` (a flat table of named colours, 
 
 ## Consequences
 
-- Hand-editing anything in `ports/` (except the Shader) is wrong; a freshness check (`build.py` then `git diff --exit-code`) should guard it.
+- Hand-editing anything in `ports/` (except the Shader and the herdr actions `apply.sh`, `remove.sh`) is wrong; a freshness check (`build.py` then `git diff --exit-code`) should guard it.
 - `Phosglow.yml` sent upstream is a build output, not a source.
 - One `palette.toml` at the root; a second variant would mean moving to `palettes/`.

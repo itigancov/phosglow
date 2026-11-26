@@ -1,0 +1,18 @@
+id = "itigancov.phosglow"
+name = "Phosglow"
+version = "1.0.0"
+min_herdr_version = "0.9.5"
+description = "Green phosphor CRT colour theme for terminals and AI coding tools, with an optional CRT shader for Ghostty."
+platforms = ["macos", "linux"]
+
+[[actions]]
+id = "apply"
+title = "Apply Phosglow"
+contexts = ["global"]
+command = ["./apply.sh"]
+
+[[actions]]
+id = "remove"
+title = "Remove Phosglow"
+contexts = ["global"]
+command = ["./remove.sh"]
