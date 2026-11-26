@@ -290,6 +290,16 @@ class PrintedPorts(Sandbox):
         self.assertIn("config.toml", r.stdout)
         self.assertIn("herdr server reload-config", r.stdout)
 
+    def test_herdr_install_names_the_plugin_command_and_actions(self):
+        r = self.run_install("herdr")
+        self.assertIn("herdr plugin install itigancov/phosglow/ports/herdr", r.stdout)
+        self.assertIn("Apply Phosglow", r.stdout)
+
+    def test_herdr_uninstall_says_to_remove_before_uninstalling_the_plugin(self):
+        r = self.run_install("--uninstall", "herdr")
+        self.assertIn("Remove Phosglow", r.stdout)
+        self.assertIn("herdr plugin uninstall itigancov.phosglow", r.stdout)
+
     def test_herdr_leaves_an_existing_config_alone(self):
         cfg = self.xdg / "herdr/config.toml"
         cfg.parent.mkdir(parents=True)
