@@ -1,0 +1,43 @@
+name: Bug
+description: Something in a Phosglow Port does not work or looks wrong
+body:
+  - type: dropdown
+    id: port
+    attributes:
+      label: Port
+      options: [ghostty, claude-code, herdr, iterm2, shader, installer]
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: For example Ghostty 1.4.0, Claude Code 2.1.332, herdr 0.9.5.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      description: For example macOS 15.1, Ubuntu 24.04.
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How you installed it
+      options: [install.sh, Plugin, by hand]
+    validations:
+      required: true
+  - type: textarea
+    id: seen-expected
+    attributes:
+      label: What you saw, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: dry-run
+    attributes:
+      label: Output of `./install.sh --dry-run <port>`
+      description: Shows the maintainer what the installer would do.
+      render: shell

@@ -23,7 +23,11 @@ README_NOTE = ("The README contrast claim must be updated along with this "
 # Hand-written files, where no colour may be defined. Rendered Ports and other
 # generated files are left out on purpose: they are full of hex.
 HAND_WRITTEN = ("templates/**/*", "install.sh", "tools/lib.sh",
-                "ports/*/install.sh", "ports/*/*.glsl")
+                "ports/*/install.sh", "ports/*/*.glsl", "README.md",
+                "CONTRIBUTING.md")
+# The README's Palette block is generated, so it is full of hex.
+GENERATED_BLOCK = re.compile(
+    re.escape(build.README_START) + ".*?" + re.escape(build.README_END), re.S)
 HEX_COLOUR = re.compile(r"#[0-9A-Fa-f]{6}\b")
 # "path:HEX" entries that may hold a hex colour, each with a reason. Empty:
 # Shader tints are float vec3 values, not hex. Add here, with a reason, rather
@@ -79,6 +83,9 @@ class NoHexOutsideThePalette(unittest.TestCase):
                     continue
                 rel = path.relative_to(ROOT).as_posix()
                 text = path.read_text(encoding="utf-8", errors="replace")
+                # Blank the block but keep its lines, so line numbers hold.
+                text = GENERATED_BLOCK.sub(
+                    lambda m: "\n" * m.group(0).count("\n"), text)
                 for n, line in enumerate(text.splitlines(), 1):
                     for m in HEX_COLOUR.finditer(line):
                         if f"{rel}:{m.group(0).upper()}" not in HEX_ALLOWED:

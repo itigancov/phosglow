@@ -4,7 +4,7 @@
     python3 tools/check_fresh.py
 
 Reads the repo from PHOSGLOW_ROOT (default: the repo this file lives in).
-Copies the generator inputs (palette.toml, VERSION, templates/) to a temp dir,
+Copies the generator inputs (palette.toml, VERSION, templates/, README.md) to a temp dir,
 renders there, and compares with what the working tree holds. Never writes to
 the working tree. Exit 1 if anything differs, is missing, or is left over.
 """
@@ -19,7 +19,7 @@ ROOT = Path(os.environ.get("PHOSGLOW_ROOT")
 sys.path.insert(0, str(ROOT / "tools"))  # the generator of the repo under test
 import build  # noqa: E402
 
-INPUTS = ("palette.toml", "VERSION", "templates", "tools/lib.sh")
+INPUTS = ("palette.toml", "VERSION", "templates", "tools/lib.sh", "README.md")
 # Hand-written files that live beside rendered ones, by name.
 HAND_WRITTEN = {"install.sh", "phosglow.glsl", "apply.sh", "remove.sh"}
 

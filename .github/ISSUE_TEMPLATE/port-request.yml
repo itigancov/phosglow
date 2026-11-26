@@ -1,0 +1,23 @@
+name: Port request
+description: Ask for Phosglow in another app
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App
+    validations:
+      required: true
+  - type: input
+    id: docs
+    attributes:
+      label: Link to the app's theme documentation
+      description: How does the app load a colour theme?
+    validations:
+      required: true
+  - type: dropdown
+    id: pr
+    attributes:
+      label: Would you open a PR? See CONTRIBUTING.md, "Adding a Port".
+      options: ["Yes", "Maybe", "No"]
+    validations:
+      required: true

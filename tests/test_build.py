@@ -254,6 +254,99 @@ class ItermColorsTest(unittest.TestCase):
         self.assertFalse((p.root / "ports/iterm2").exists())
 
 
+START, END = "<!-- palette:start -->", "<!-- palette:end -->"
+
+
+class ReadmeTableTest(unittest.TestCase):
+    """The README's Palette block is generated; the rest of it is left alone."""
+
+    def project(self, readme):
+        p = Project(self, full_palette(), {"a/t.tmpl": "x\n"})
+        (p.root / "README.md").write_text(readme)
+        return p
+
+    def readme(self, p):
+        return (p.root / "README.md").read_text()
+
+    def test_block_holds_base_and_ansi_tables_from_the_palette(self):
+        p = self.project(f"# T\n\n{START}\nstale\n{END}\n")
+        r = p.build()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        text = self.readme(p)
+        self.assertNotIn("stale", text)
+        for row in ("| `bg` | `#050A05` |",
+                    "| `fg` | `#29E050` |",
+                    "| `selection_bg` | `#14401C` |",
+                    "| black | `#000000` | `#080808` |",
+                    "| red | `#010101` | `#090909` |",
+                    "| white | `#070707` | `#0F0F0F` |"):
+            self.assertIn(row, text)
+
+    def test_role_references_show_the_resolved_hex(self):
+        p = self.project(f"{START}\n{END}\n")
+        p.build()
+        text = self.readme(p)
+        self.assertIn("| `cursor` | `#0A0A0A` |", text)  # bright_green
+        self.assertIn("| `selection_fg` | `#0F0F0F` |", text)  # bright_white
+
+    def test_extra_tones_are_not_shown(self):
+        p = Project(self, full_palette() + 'shimmer = "#8CFFAA"\n', {"a/t.tmpl": "x\n"})
+        (p.root / "README.md").write_text(f"{START}\n{END}\n")
+        p.build()
+        self.assertNotIn("8CFFAA", self.readme(p))
+
+    def test_text_outside_the_markers_is_byte_identical(self):
+        before = "# T\r\n\nhand #written\n\n"
+        after = "\n## Next\n\ttabs  \n"
+        p = self.project(f"{before}{START}\nold\n{END}{after}")
+        p.build()
+        text = (p.root / "README.md").read_bytes().decode()
+        self.assertTrue(text.startswith(f"{before}{START}\n"))
+        self.assertTrue(text.endswith(f"\n{END}{after}"))
+
+    def test_second_run_changes_nothing(self):
+        p = self.project(f"x\n{START}\nold\n{END}\ny\n")
+        p.build()
+        first = p.snapshot()
+        self.assertEqual(p.build().returncode, 0)
+        self.assertEqual(p.snapshot(), first)
+
+    def test_no_readme_means_none_in_the_output_and_no_error(self):
+        p = Project(self, full_palette(), {"a/t.tmpl": "x\n"})
+        r = p.build()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse((p.root / "README.md").exists())
+
+    def assert_marker_error(self, readme):
+        p = self.project(readme)
+        r = p.build()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("README.md", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertEqual(self.readme(p), readme, "README changed on failure")
+        self.assertFalse((p.root / "ports").exists(), "wrote output on failure")
+
+    def test_missing_markers_fail_naming_the_readme(self):
+        self.assert_marker_error("# T\n")
+
+    def test_missing_end_marker_fails(self):
+        self.assert_marker_error(f"{START}\n")
+
+    def test_duplicated_markers_fail(self):
+        self.assert_marker_error(f"{START}\n{END}\n{START}\n{END}\n")
+
+    def test_reversed_markers_fail(self):
+        self.assert_marker_error(f"{END}\n{START}\n")
+
+    def test_palette_without_the_needed_roles_fails_naming_one(self):
+        p = Project(self, palette_toml(bg="#050A05"), {"a/t.tmpl": "x\n"})
+        (p.root / "README.md").write_text(f"{START}\n{END}\n")
+        r = p.build()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("README.md", r.stderr)
+        self.assertIn("fg", r.stderr)
+
+
 PLUGIN = ".claude-plugin/plugin.json"
 PLUGIN_PATH = "ports/claude-code/" + PLUGIN
 MARKETPLACE_PATH = ".claude-plugin/marketplace.json"

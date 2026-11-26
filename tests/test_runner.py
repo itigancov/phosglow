@@ -140,6 +140,14 @@ class Freshness(RunnerCase):
                   'surface_1           = "#112233"')
         self.assertFails("freshness")
 
+    def test_stale_readme_table_names_the_readme(self):
+        self.edit("README.md", "`#050A05`", "`#050A06`")
+        self.assertFails("freshness", "README.md")
+
+    def test_readme_without_markers_fails_freshness(self):
+        self.edit("README.md", "<!-- palette:end -->", "")
+        self.assertFails("freshness", "README.md")
+
     def test_regenerated_uncommitted_change_passes(self):
         self.edit("palette.toml", 'surface_1           = "#10241A"',
                   'surface_1           = "#112233"')
@@ -171,6 +179,21 @@ class PaletteChecks(RunnerCase):
                    self.read("ports/ghostty/install.sh") + "# tint #ABCDEF\n")
         n = len(self.read("ports/ghostty/install.sh").splitlines())
         self.assertFails("unit tests", f"ports/ghostty/install.sh:{n}")
+
+    def test_hex_in_readme_prose_names_file_and_line(self):
+        self.write("README.md", self.read("README.md") + "\nuse #123456\n")
+        n = len(self.read("README.md").splitlines())
+        self.assertFails("unit tests", f"README.md:{n}")
+
+    def test_hex_in_contributing_names_file_and_line(self):
+        self.write("CONTRIBUTING.md", self.read("CONTRIBUTING.md") + "\n#ABCDEF\n")
+        n = len(self.read("CONTRIBUTING.md").splitlines())
+        self.assertFails("unit tests", f"CONTRIBUTING.md:{n}")
+
+    def test_hex_inside_the_generated_block_is_not_flagged(self):
+        # The table is generated, so it is full of hex and the run stays green.
+        self.assertIn("`#050A05`", self.read("README.md"))
+        self.assertGreen(self.run_runner())
 
     def test_hex_in_a_rendered_port_is_not_flagged(self):
         r = self.run_runner()  # rendered Ports are full of hex

@@ -6,7 +6,9 @@
 ROOT (default: the repo root) holds `palette.toml`, `VERSION` and
 `templates/<port>/`. Output goes to `ROOT/ports/<port>/`, plus the Claude Code
 plugin and marketplace manifests, the herdr Plugin manifest and helper copy,
-and `ROOT/assets/palette.svg`. Standard library only (Python 3.11+, for
+and `ROOT/assets/palette.svg`. If `ROOT/README.md` exists, its Palette tables
+(between the palette:start and palette:end markers) are regenerated in place;
+the README is both an input and an output. Standard library only (Python 3.11+, for
 tomllib).
 """
 import json
@@ -270,6 +272,42 @@ def palette_svg(palette):
     return ("\n".join(out) + "\n").encode("utf-8")
 
 
+README_START, README_END = "<!-- palette:start -->", "<!-- palette:end -->"
+BASE_ROLES = ["bg", "fg", "cursor", "selection_bg", "selection_fg"]
+
+
+def palette_tables(palette):
+    """The README's two tables: the base Roles, and the ANSI colours."""
+    needed = BASE_ROLES + ANSI_ROLES
+    missing = [r for r in needed if r not in palette]
+    if missing:
+        raise BuildError(f"README.md: palette lacks roles {', '.join(missing)}")
+    rows = ["| Role | Hex |", "| --- | --- |"]
+    rows += [f"| `{r}` | `{palette[r]}` |" for r in BASE_ROLES]
+    rows += ["", "| Colour | Normal | Bright |", "| --- | --- | --- |"]
+    rows += [f"| {n} | `{palette[n]}` | `{palette['bright_' + n]}` |"
+             for n in ANSI_ROLES[:8]]
+    return "\n".join(rows)
+
+
+def render_readme(root, palette):
+    """The README with its Palette block regenerated; everything outside the
+    markers is kept byte for byte."""
+    try:
+        text = (root / "README.md").read_bytes().decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise BuildError(f"cannot read README.md: {e}") from e
+    if (text.count(README_START) != 1 or text.count(README_END) != 1
+            or text.index(README_START) > text.index(README_END)):
+        raise BuildError(
+            f"README.md: expected exactly one {README_START} followed by one "
+            f"{README_END}")
+    head, rest = text.split(README_START)
+    _, tail = rest.split(README_END)
+    block = f"{README_START}\n{palette_tables(palette)}\n{README_END}"
+    return (head + block + tail).encode("utf-8")
+
+
 def build(root):
     """Return {output path: bytes} for every Port under root."""
     root = Path(root)
@@ -294,6 +332,8 @@ def build(root):
         outputs.update(herdr_plugin(root))
     if any(r in palette for r in ANSI_ROLES):
         outputs[root / "assets" / "palette.svg"] = palette_svg(palette)
+    if (root / "README.md").is_file():
+        outputs[root / "README.md"] = render_readme(root, palette)
     return outputs
 
 
