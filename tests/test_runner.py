@@ -258,6 +258,30 @@ class PortChecks(RunnerCase):
         self.assertFails("unit tests", "add a parse check for newport")
 
 
+class ReadmeImages(RunnerCase):
+    def test_leftover_placeholder_names_the_readme_line(self):
+        self.write("README.md", self.read("README.md") + "\n<!-- TODO(07): x -->\n")
+        n = len(self.read("README.md").splitlines())
+        self.assertFails("unit tests", f"README.md:{n}", "TODO(07)")
+
+    def add_image(self, name, data=None):
+        self.write("README.md", self.read("README.md") + f"\n![shot](assets/{name})\n")
+        if data is not None:
+            (self.copy / "assets" / name).write_bytes(data)
+
+    def test_missing_image_names_the_file(self):
+        self.add_image("gone.png")
+        self.assertFails("unit tests", "assets/gone.png", "missing")
+
+    def test_non_png_image_names_the_file(self):
+        self.add_image("fake.png", b"GIF89a not a png")
+        self.assertFails("unit tests", "assets/fake.png", "not a PNG")
+
+    def test_oversized_image_names_the_file(self):
+        self.add_image("big.png", b"\x89PNG\r\n\x1a\n" + b"\0" * 500 * 1024)
+        self.assertFails("unit tests", "assets/big.png", "500 KB")
+
+
 class Plugin(RunnerCase):
     def test_missing_claude_cli_skips_without_failing(self):
         bin_ = self.tmp / "bin"

@@ -2,7 +2,7 @@
 
 Phosglow — a green phosphor CRT theme for terminals and AI coding tools.
 
-<!-- TODO(07): assets/hero.png — hero: Ghostty with the Shader on, a busy terminal session -->
+![Claude Code in Ghostty with the Shader on, asking to approve an edit](assets/hero.png)
 
 Phosglow is one Palette of near-black and green with warm red and amber for
 errors and warnings. It ships as Ports for four apps:
@@ -18,9 +18,13 @@ Ports are best-effort. Each lists the app version it was verified with.
 
 | Shader off | Shader on |
 | --- | --- |
-| <!-- TODO(07): assets/shader-off.png — Ghostty, Shader off --> | <!-- TODO(07): assets/shader-on.png — same screen, Shader on --> |
+| ![Ghostty, Shader off](assets/shader-off.png) | ![The same screen, Shader on](assets/shader-on.png) |
 
-<!-- TODO(07): assets/colour-range.png — `ls`, `git diff`, `git log --graph`, an error and a warning -->
+![ls, git diff, git log --graph, and a pytest run with a failure and a deprecation warning](assets/colours.png)
+
+| herdr | iTerm2 |
+| --- | --- |
+| ![herdr with three panes: git log, git diff and a failing test run](assets/herdr.png) | ![The ls, git diff, git log and pytest screen in iTerm2, without the Shader](assets/iterm2.png) |
 
 ## Install
 
@@ -116,7 +120,7 @@ Verified with herdr 0.9.5.
 
 `./install.sh iterm2` prints these steps with the full path.
 
-Verified with iTerm2 <TODO(07)>.
+Verified with iTerm2 3.7.9.
 
 ## Palette
 
