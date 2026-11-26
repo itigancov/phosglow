@@ -250,6 +250,8 @@ class ClaudeCode(Sandbox):
         self.assertIn('"theme": "custom:phosglow"', r.stdout)
         self.assertIn("/plugin marketplace add", r.stdout)
         self.assertIn("/plugin install", r.stdout)
+        # a plugin theme is named <plugin>:<theme>, unlike a copied one
+        self.assertIn('"theme": "custom:phosglow:phosglow"', r.stdout)
 
     def test_settings_json_is_never_created_or_touched(self):
         self.run_install("claude-code")

@@ -34,7 +34,11 @@ case $cmd in
 Or use the plugin instead of the copied file:
 
   /plugin marketplace add itigancov/phosglow
-  /plugin install phosglow@phosglow"
+  /plugin install phosglow@phosglow
+
+Then pick \"Phosglow (from phosglow)\" in /theme, or set
+  \"theme\": \"custom:phosglow:phosglow\"
+(the plugin's theme has its own name; do not use both the copy and the plugin)."
     ;;
   uninstall)
     remove_file "$dir/themes/phosglow.json"
