@@ -1,5 +1,6 @@
 """Black-box tests for tools/build.py: run the CLI on a fixture project."""
 import json
+import os
 import plistlib
 import subprocess
 import sys
@@ -9,6 +10,14 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 BUILD = Path(__file__).resolve().parent.parent / "tools" / "build.py"
+
+
+def setUpModule():
+    # tests/test_runner.py runs the runner on broken copies; these slow suites
+    # test code the copies do not change, so the nested run leaves them out.
+    if os.environ.get("PHOSGLOW_NESTED"):
+        raise unittest.SkipTest("nested run")
+
 
 ANSI = [
     "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",

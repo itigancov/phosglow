@@ -20,6 +20,13 @@ BLOCK_CRT = f"\n{START}\ntheme = Phosglow\ncustom-shader = shaders/phosglow.glsl
 BLOCK_NO_CRT = f"\n{START}\ntheme = Phosglow\n{END}\n"
 
 
+def setUpModule():
+    # tests/test_runner.py runs the runner on broken copies; these slow suites
+    # test code the copies do not change, so the nested run leaves them out.
+    if os.environ.get("PHOSGLOW_NESTED"):
+        raise unittest.SkipTest("nested run")
+
+
 class Sandbox(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
