@@ -6,7 +6,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [1.0.0] - TODO(release-date)
+## [1.0.0] - 2026-11-27
 
 ### Added
 
@@ -18,4 +18,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `tools/test.sh` and CI.
 
 [Unreleased]: https://github.com/itigancov/phosglow/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/itigancov/phosglow/releases/tag/v1.0.0
 [1.0.0]: https://github.com/itigancov/phosglow/releases/tag/v1.0.0
