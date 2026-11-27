@@ -6,10 +6,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Fixed
-
-- iTerm2: preset sets Bold Color to `fg`, so bold default-foreground text is readable.
-
 ## [1.0.0] - 2026-11-27
 
 ### Added
