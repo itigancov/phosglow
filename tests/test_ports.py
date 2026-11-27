@@ -77,7 +77,12 @@ def check_claude_code(port):
 
 
 def check_iterm2(port):
-    parse(port / "Phosglow.itermcolors", load_plist)
+    plist = parse(port / "Phosglow.itermcolors", load_plist)
+    if "Bold Color" not in plist:
+        raise Invalid("ports/iterm2/Phosglow.itermcolors has no Bold Color")
+    if not re.search(rf'^bold: "{HEX}"$',
+                     (port / "Phosglow.yml").read_text(encoding="utf-8"), re.M):
+        raise Invalid("ports/iterm2/Phosglow.yml has no bold field")
     check_indexed_colours(
         port / "Phosglow.yml",
         re.compile(rf'color_(\d\d): "{HEX}"|[a-z_]+: "(?:{HEX}|[^"]*)"'),

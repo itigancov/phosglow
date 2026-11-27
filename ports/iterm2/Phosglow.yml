@@ -20,6 +20,7 @@ color_16: "#D8FFD8"
 
 background: "#050A05"
 foreground: "#29E050"
+bold: "#29E050"
 cursor: "#33FF66"
 cursor_text: "#050A05"
 selection: "#14401C"

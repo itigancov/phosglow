@@ -218,7 +218,8 @@ class ItermColorsTest(unittest.TestCase):
         plist = self.build_plist()
         expected = {f"Ansi {i} Color" for i in range(16)} | {
             "Background Color", "Foreground Color", "Cursor Color",
-            "Cursor Text Color", "Selection Color", "Selected Text Color"}
+            "Cursor Text Color", "Selection Color", "Selected Text Color",
+            "Bold Color"}
         self.assertEqual(set(plist), expected)
 
     def test_components_are_exact_floats(self):
@@ -240,6 +241,7 @@ class ItermColorsTest(unittest.TestCase):
         self.assertEqual(plist["Cursor Text Color"]["Red Component"], 5 / 255)
         self.assertEqual(plist["Selection Color"]["Red Component"], 0x14 / 255)
         self.assertEqual(plist["Foreground Color"]["Blue Component"], 0x50 / 255)
+        self.assertEqual(plist["Bold Color"], plist["Foreground Color"])
 
     def test_missing_role_for_the_preset_fails_naming_it(self):
         p = Project(self, palette_toml(bg="#050A05"),

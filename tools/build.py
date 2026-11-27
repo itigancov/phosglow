@@ -98,7 +98,8 @@ ITERM_KEYS = (
         "bright_blue", "bright_magenta", "bright_cyan", "bright_white"])]
     + [("Background Color", "bg"), ("Foreground Color", "fg"),
        ("Cursor Color", "cursor"), ("Cursor Text Color", "cursor_text"),
-       ("Selection Color", "selection_bg"), ("Selected Text Color", "selection_fg")]
+       ("Selection Color", "selection_bg"), ("Selected Text Color", "selection_fg"),
+       ("Bold Color", "fg")]
 )
 
 

@@ -118,6 +118,9 @@ Verified with herdr 0.9.5.
 3. Select `ports/iterm2/Phosglow.itermcolors`.
 4. Open Color Presets... again and choose Phosglow.
 
+If *Use separate colors for light and dark mode* is on, apply the preset in each
+mode or turn the option off.
+
 `./install.sh iterm2` prints these steps with the full path.
 
 Verified with iTerm2 3.7.9.
